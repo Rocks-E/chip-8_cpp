@@ -65,7 +65,7 @@ chip_8::chip_8(std::string rom_filename, display *display_ptr, uint16_t init_sta
 
 	rom_file.close();
 
-	std::srand(0);
+	std::srand(time(NULL));
 	
 }
 chip_8::~chip_8() {
@@ -80,7 +80,7 @@ void chip_8::run() {
 
 	sf::Clock chip_clock;
 
-	while(elapsed_time < frame_time) {
+	while (elapsed_time < frame_time) {
 
 		elapsed_time += chip_clock.getElapsedTime();
 		chip_clock.restart();
@@ -90,7 +90,7 @@ void chip_8::run() {
 		sf::sleep(cycle_time);
 
 	}
-	
+
 	this->update_timers();
 
 }

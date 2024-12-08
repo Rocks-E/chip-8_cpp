@@ -1,8 +1,9 @@
 #include "display.hpp"
 
-display::display(uint8_t scale_by) {
+display::display(uint8_t scale_by, bool enable_grid_lines) : grid_lines_enable(enable_grid_lines) {
 
-	this->pixels.resize(DISPLAY_WIDTH * DISPLAY_HEIGHT);
+	this->screen_texture.create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+	this->screen_sprite.setScale(scale_by, scale_by);
 
 	this->grid_lines.setPrimitiveType(sf::Lines);
 	for(size_t c = 1; c < DISPLAY_WIDTH; c++) {
@@ -14,46 +15,39 @@ display::display(uint8_t scale_by) {
 		this->grid_lines.append(sf::Vertex(sf::Vector2f(DISPLAY_WIDTH * scale_by, c * scale_by), sf::Color(0x88, 0x88, 0x88)));
 	}
 
-	// Move all pixels to their designated positions, start as black
-	for(size_t row = 0; row < DISPLAY_HEIGHT; row++) {
-
-		size_t rect_pos = DISPLAY_WIDTH * row;
-
-		for(size_t col = 0; col < DISPLAY_WIDTH; col++) {
-
-			this->pixels[rect_pos].setSize(sf::Vector2f(scale_by, scale_by));
-			this->pixels[rect_pos].setPosition(col * scale_by, row * scale_by);
-			this->pixels[rect_pos].setFillColor(sf::Color::Black);
-
-			rect_pos++;
-
-		}
-	}
-
 }
 display::~display() {}
 
-void display::draw_display(sf::RenderWindow &draw_window) const {
+void display::update_display() {
 	
-	for(sf::RectangleShape rect : this->pixels)
-		draw_window.draw(rect);
+	this->screen_texture.update(this->screen_pixels);
+	this->screen_sprite.setTexture(this->screen_texture);
 
-	draw_window.draw(this->grid_lines);
+}
+
+void display::draw_display(sf::RenderWindow &window) {
+	
+	this->update_display();
+
+	window.draw(this->screen_sprite);
+	if(this->grid_lines_enable)
+		window.draw(this->grid_lines);
 
 }
 void display::clear_screen() {
-	for(sf::RectangleShape &rect : this->pixels)
-		rect.setFillColor(sf::Color::Black);
+	for (size_t c = 0; c < (DISPLAY_WIDTH * DISPLAY_HEIGHT); c++)
+		(uint32_t &)(this->screen_pixels[c * sizeof(int32_t)]) = BLACK_PIXEL;
 }
 
 void display::flip_pixel(uint8_t x, uint8_t y) {
 	
-	if(x > DISPLAY_WIDTH || y > DISPLAY_HEIGHT)
+	if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
 		return;
 
-	size_t pixel_pos = DISPLAY_WIDTH * y + x;
+	(uint32_t &)(this->screen_pixels[(DISPLAY_WIDTH * y + x) * sizeof(int32_t)]) ^= 0xFFFFFFFF;
 
-	// Swap the color of this pixel
-	this->pixels[pixel_pos].setFillColor((this->pixels[pixel_pos].getFillColor() == sf::Color::Black) ? sf::Color::White : sf::Color::Black);
+}
 
+void display::toggle_grid_lines() {
+	this->grid_lines_enable = !this->grid_lines_enable;
 }

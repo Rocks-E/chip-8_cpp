@@ -4,22 +4,24 @@
 
 #include "chip_8.hpp"
 
-#define SCREEN_WIDTH DISPLAY_WIDTH * DEFAULT_SCALE_FACTOR
-#define SCREEN_HEIGHT DISPLAY_HEIGHT * DEFAULT_SCALE_FACTOR
-#define BIT_DEPTH 1
+
 
 int32_t main(int32_t argc, const char * const *argv) {
 
+#ifndef _DEBUG
 	if(argc < 2) {
 		std::cerr << "No file specified\n";
 		exit(1);
 	}
+#endif
 
-
-
-	sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, BIT_DEPTH), "Chip-8");
-	display monitor;
+	sf::RenderWindow window(sf::VideoMode(DISPLAY_WIDTH * DEFAULT_SCALE_FACTOR, DISPLAY_HEIGHT * DEFAULT_SCALE_FACTOR, BIT_DEPTH), "Chip-8");
+	display monitor(DEFAULT_SCALE_FACTOR, true);
+#ifndef _DEBUG
 	chip_8 computer(argv[1], &monitor, 0xFFF);
+#else
+	chip_8 computer("C:/Users/minec/Downloads/chip8-master/Sierpinski [Sergey Naydenov, 2010].ch8", &monitor, 0xFFF);
+#endif
 
 	while(window.isOpen()) {
 	
